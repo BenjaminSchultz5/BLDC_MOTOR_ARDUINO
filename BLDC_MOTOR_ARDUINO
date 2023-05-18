@@ -1,17 +1,17 @@
 // Overall, this code reads PWM signals from the Pixhawk to control the direction and speed of a BLDC motor
 // using a PID controller. The motor speed is kept constant at the desired speed of 200 RPM,
 // and the direction of the motor can be controlled using the PWM signals from the Pixhawk.
-// Pins the are used in this code - arduino: 2,3,4,5,6,7
+// Pins the are used in this code - arduino: 2,3,4,5,6,7,8
 
 // Including the servo library, which allows the Arduino to control servo motors
 #include <Servo.h>
 
 // The PWM input pins for the Pixhawk are defined as constants.
 // These pins will be used to receive PWM signals from the Pixhawk that will control the direc and speed of motor
-#define FORWARD_PIN 5
+#define FORWARD_PIN 5 
 #define REVERSE_PIN 6
 #define SPEED_PIN 7
-#define PWM_PIN 3
+#define PWM_PIN 8
 #define DIR_PIN 4
 
 // The max and min PWM duty cycles are defined as constants.

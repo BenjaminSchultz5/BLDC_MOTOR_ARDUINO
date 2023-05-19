@@ -1,17 +1,18 @@
 // Overall, this code reads PWM signals from the Pixhawk to control the direction and speed of a BLDC motor
 // using a PID controller. The motor speed is kept constant at the desired speed of 200 RPM,
 // and the direction of the motor can be controlled using the PWM signals from the Pixhawk.
-// Pins the are used in this code - arduino: 2,3,4,5,6,7,8
+// Pins the are used in this code - arduino: 2,3,4,5,6,7
 
 // Including the servo library, which allows the Arduino to control servo motors
 #include <Servo.h>
 
 // The PWM input pins for the Pixhawk are defined as constants.
 // These pins will be used to receive PWM signals from the Pixhawk that will control the direc and speed of motor
-#define FORWARD_PIN 5 
+#define FORWARD_PIN 5
 #define REVERSE_PIN 6
+#define STOP_PIN 2
 #define SPEED_PIN 7
-#define PWM_PIN 8
+#define PWM_PIN 3
 #define DIR_PIN 4
 
 // The max and min PWM duty cycles are defined as constants.
@@ -35,6 +36,7 @@ Servo motor;
 unsigned long last_time = 0;
 float last_error = 0;
 float integral = 0;
+float current_speed = 0;
 
 void setup() {
 // PWM input pins for the Pixhawk are initialized as inputs.
@@ -64,7 +66,7 @@ void setup() {
 void loop() {
   unsigned long current_time = millis();  //obtaining the current time
   float delta_time = (float)(current_time - last_time) / 1000.0;  //time since last loop
-  float current_speed = read_motor_speed(); //current speed of the motor
+  current_speed = read_motor_speed(); //current speed of the motor
 
 //Obtaining the info from PWM signal
   int forward_signal = pulseIn(FORWARD_PIN, HIGH, 25000); 
@@ -116,7 +118,7 @@ void loop() {
 
 // Define the motor parameters
 #define MOTOR_POLES 4
-#define MOTOR_GEAR_RATIO 72:1
+#define MOTOR_GEAR_RATIO 72
 
 // Create an Encoder object for the motor encoder
 Encoder motor_encoder(ENC_A, ENC_B);
@@ -155,5 +157,5 @@ float read_motor_speed() {
   }
 
   // If not enough time has passed, return the previous motor speed
-  return last_motor_speed;
+  return current_speed;
 }

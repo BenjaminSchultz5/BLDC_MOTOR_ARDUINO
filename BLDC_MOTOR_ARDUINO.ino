@@ -5,6 +5,7 @@
 
 // Including the servo library, which allows the Arduino to control servo motors
 #include <Servo.h>
+#include <Encoder.h>
 
 // The PWM input pins for the Pixhawk are defined as constants.
 // These pins will be used to receive PWM signals from the Pixhawk that will control the direc and speed of motor
@@ -14,6 +15,18 @@
 #define SPEED_PIN 7
 #define PWM_PIN 3
 #define DIR_PIN 4
+
+// Defining the pins for the encoder
+#define ENC_A 2
+#define ENC_B 3
+
+// Define the encoder resolution and update interval
+#define ENC_RESOLUTION 1024
+#define ENC_UPDATE_INTERVAL 10
+
+// Define the motor parameters
+#define MOTOR_POLES 4
+#define MOTOR_GEAR_RATIO 72
 
 // The max and min PWM duty cycles are defined as constants.
 // These values will be used to limit the PWM duty cycle output to the BLDC driver
@@ -32,32 +45,39 @@
 // A Servo object is created for the BLDC driver
 Servo motor;
 
+// Create an Encoder object for the motor encoder
+Encoder motor_encoder(ENC_A, ENC_B);
+
 // Variables for the use of the PID loop.
 unsigned long last_time = 0;
 float last_error = 0;
 float integral = 0;
 float current_speed = 0;
 
+// Defining the variables for the speed calculation
+unsigned long last_enc_time = 0;
+long last_enc_count = 0;
+
 void setup() {
-// PWM input pins for the Pixhawk are initialized as inputs.
+  // PWM input pins for the Pixhawk are initialized as inputs.
   pinMode(FORWARD_PIN, INPUT); 
   pinMode(REVERSE_PIN, INPUT);
   pinMode(SPEED_PIN, INPUT);
   
-// PWM output pins for the BLDC driver are initialized as outputs.
+  // PWM output pins for the BLDC driver are initialized as outputs.
   pinMode(PWM_PIN, OUTPUT);
   pinMode(DIR_PIN, OUTPUT);
 
-// Servo object is initialized
+  // Servo object is initialized
   motor.attach(PWM_PIN);
 
-// Direction pin for the motor is set to HIGH, indicating forward direction.
+  // Direction pin for the motor is set to HIGH, indicating forward direction.
   digitalWrite(DIR_PIN, HIGH);
 
-// Motor speed is set to the minimum duty cycle (1000 microseconds).
+  // Motor speed is set to the minimum duty cycle (1000 microseconds).
   motor.writeMicroseconds(1000);
 
-// Initializing PID variables
+  // Initializing PID variables
   last_time = millis();
   last_error = 0;
   integral = 0;
@@ -68,21 +88,22 @@ void loop() {
   float delta_time = (float)(current_time - last_time) / 1000.0;  //time since last loop
   current_speed = read_motor_speed(); //current speed of the motor
 
-//Obtaining the info from PWM signal
+  //Obtaining the info from PWM signal
   int forward_signal = pulseIn(FORWARD_PIN, HIGH, 25000); 
   int reverse_signal = pulseIn(REVERSE_PIN, HIGH, 25000);
   int speed_signal = pulseIn(SPEED_PIN, HIGH, 25000);
 
   float desired_speed = map(speed_signal, 1000, 2000, 0, 255); //Calculating speed based on PWM signal
 
-//Setting direction of motor according to PWM signal
+  //Setting direction of motor according to PWM signal
   if (forward_signal > 1500 && reverse_signal < 1500) {
     digitalWrite(DIR_PIN, HIGH);
+  
   } else if (reverse_signal > 1500 && forward_signal < 1500) {
     digitalWrite(DIR_PIN, LOW);
   }
 
-//Calculating error of speed and implimenting the PID control while making sure its within the max/min duty cycle
+  //Calculating error of speed and implimenting the PID control while making sure its within the max/min duty cycle
   float error = desired_speed - current_speed;
   float derivative = (error - last_error) / delta_time;
   integral += error * delta_time;
@@ -101,31 +122,6 @@ void loop() {
     motor.writeMicroseconds(1500);
   }
 }
-
-
-// The section of this code is for reading the motors speed via the HALL SENSORS on the FAULHABER motor //
-
-// Required libraries
-#include <Encoder.h>
-
-// Defining the pins for the encoder
-#define ENC_A 2
-#define ENC_B 3
-
-// Define the encoder resolution and update interval
-#define ENC_RESOLUTION 1024
-#define ENC_UPDATE_INTERVAL 10
-
-// Define the motor parameters
-#define MOTOR_POLES 4
-#define MOTOR_GEAR_RATIO 72
-
-// Create an Encoder object for the motor encoder
-Encoder motor_encoder(ENC_A, ENC_B);
-
-// Defining the variables for the speed calculation
-unsigned long last_enc_time = 0;
-long last_enc_count = 0;
 
 // Define the function for reading the motor speed
 float read_motor_speed() {

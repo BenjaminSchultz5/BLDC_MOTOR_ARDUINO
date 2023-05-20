@@ -98,7 +98,7 @@ void loop() {
     digitalWrite(DIR_PIN, LOW);
   }
 
-  //Calculating error of speed and implimenting the PID control while making sure its within the max/min duty cycle
+  //Calculating error of speed and implementing the PID control while making sure its within the max/min duty cycle
   float error = desired_speed - current_speed;
   float derivative = (error - last_error) / delta_time;
   integral += error * delta_time;

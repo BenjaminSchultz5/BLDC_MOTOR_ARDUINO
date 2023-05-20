@@ -9,12 +9,14 @@
 
 // The PWM input pins for the Pixhawk are defined as constants.
 // These pins will be used to receive PWM signals from the Pixhawk that will control the direc and speed of motor
-#define FORWARD_PIN 5
-#define REVERSE_PIN 6
-#define STOP_PIN 2
-#define SPEED_PIN 7
-#define PWM_PIN 3
+#define FORWARD_PIN 7
+#define REVERSE_PIN 8
+#define STOP_PIN 9
+#define SPEED_PIN 10
+
+// Define the pins for controlling the motor driver
 #define DIR_PIN 4
+#define PWM_PIN 5
 
 // Defining the pins for the encoder
 #define ENC_A 2

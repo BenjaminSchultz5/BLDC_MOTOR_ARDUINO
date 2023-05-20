@@ -3,8 +3,7 @@
 // and the direction of the motor can be controlled using the PWM signals from the Pixhawk.
 // Pins the are used in this code - arduino: 2,3,4,5,6,7
 
-// Including the servo library, which allows the Arduino to control servo motors
-#include <Servo.h>
+// Including the encoder library, which allows to calculate the motor speed
 #include <Encoder.h>
 
 // The PWM input pins for the Pixhawk are defined as constants.
@@ -44,9 +43,6 @@
 // This is the desired motor speed in rpm
 #define DESIRED_SPEED 200
 
-// A Servo object is created for the BLDC driver
-Servo motor;
-
 // Create an Encoder object for the motor encoder
 Encoder motor_encoder(ENC_A, ENC_B);
 
@@ -70,14 +66,11 @@ void setup() {
   pinMode(PWM_PIN, OUTPUT);
   pinMode(DIR_PIN, OUTPUT);
 
-  // Servo object is initialized
-  motor.attach(PWM_PIN);
-
   // Direction pin for the motor is set to HIGH, indicating forward direction.
   digitalWrite(DIR_PIN, HIGH);
 
-  // Motor speed is set to the minimum duty cycle (1000 microseconds).
-  motor.writeMicroseconds(1000);
+  // Motor speed is set to the minimum duty cycle
+  analogWrite(PWM_PIN, MIN_DUTY_CYCLE);
 
   // Initializing PID variables
   last_time = millis();
@@ -87,7 +80,7 @@ void setup() {
 
 void loop() {
   unsigned long current_time = millis();  //obtaining the current time
-  float delta_time = (float)(current_time - last_time) / 1000.0;  //time since last loop
+  float delta_time = (float)(current_time - last_time) / 1000.f;  //time since last loop
   current_speed = read_motor_speed(); //current speed of the motor
 
   //Obtaining the info from PWM signal
@@ -111,7 +104,7 @@ void loop() {
   integral += error * delta_time;
   float output = KP * error + KI * integral + KD * derivative;
   output = constrain(output, MIN_DUTY_CYCLE, MAX_DUTY_CYCLE);
-  motor.writeMicroseconds(map(output, 0, 255, 1000, 2000)); // Setting new duty cycle 
+  analogWrite(PWM_PIN, output); // Setting new duty cycle 
 
   last_time = current_time;
   last_error = error;
@@ -121,7 +114,7 @@ void loop() {
   
   // If the stop signal is detected, set the motor to stop
   if (stop_signal > 1500) {
-    motor.writeMicroseconds(1500);
+    analogWrite(PWM_PIN, MIN_DUTY_CYCLE);
   }
 }
 
